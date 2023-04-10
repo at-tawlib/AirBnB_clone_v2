@@ -30,7 +30,7 @@ def do_pack():
         if local("mkdir -p versions").failed is True:
             return None
     # create the archive file
-    if local("tar -czvf {} web_static".format(file)).failed is True:
+    if local("tar -cvzf {} web_static".format(file)).failed is True:
         return None
 
     # finally return the file
@@ -90,7 +90,7 @@ def do_deploy(archive_path):
 
 
 def deploy():
-    # archive and get the archived file
+    """create archive then deploy to webservers"""
     file = do_pack()
     if file is None:
         return False
