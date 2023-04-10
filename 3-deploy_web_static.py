@@ -1,7 +1,9 @@
 #!/usr/bin/python3
-from fabric.api import *
-from time import strftime
-from datetime import date, datetime
+from fabric.api import env
+from fabric.api import local
+from fabric.api import run 
+from fabric.api import put
+from datetime import datetime
 from os import path
 
 env.hosts = ['35.175.105.33', '52.86.214.98']
@@ -16,16 +18,26 @@ def do_pack():
         the archive path if archive has been correctly generated
         else return None
     """
+    # get date to create file
+    dt = datetime.utcnow()
+    file = "versions/web_static_{}{}{}{}{}{}.tgz".format(dt.year,
+            dt.month,
+            dt.day,
+            dt.hour,
+            dt.minute,
+            dt.second)
 
-    name = strftime("%Y%m%d%H%M%S")
-    try:
-        # create dir if it does not exist
-        local("mkdir -p versions")
-        local("tar -czvf versions/web_static_{}.tgz web_static/".format(name))
-
-        return "versions/web_static_{}.tgz".format(name)
-    except Exception as e:
+    # if dir is not available, create dir, return None if unsuccessful
+    if os.path.isdir("versions") is False:
+        if local("mkdir -p versions").failed is True:
+            return None
+    
+    # create the archive file
+    if local("tar -czvf {} web_static".format(file)).failed is True:
         return None
+
+    # finally return the file
+    return file
 
 
 def do_deploy(archive_path):
@@ -38,51 +50,46 @@ def do_deploy(archive_path):
         True if all operations have been done
     """
     # check if file exists
-    try:
-        if not (path.exists(archive_path)):
-            return False
-
-        # extract only file name
-        file = archive_path.split("/")[-1]
-        file_name = file.split(".")[0]
-
-        # upload the file to the /tmp/ directory of the server
-        put(archive_path, '/tmp/{}'.format(file))
-
-        run("rm -rf /data/web_static/releases/{}/".format(file_name))
-
-        # get timestamp and use to create target dir
-        timestamp = archive_path[-18:-4]
-        run("sudo mkdir -p /data/web_static/releases/{}/"
-            .format(file_name))
-
-        # Uncompress the archive
-        run('sudo tar -xzf  /tmp/{} -C \
-/data/web_static/releases/{}/'
-            .format(file, file_name))
-
-        # Delete the archive from the web server
-        run("sudo rm /tmp/{}".format(file))
-
-        # move contents to the host
-        run("sudo mv /data/web_static/releases/{}/web_static/* \
-                /data/web_static/releases/{}/"
-            .format(file_name, file_name))
-
-        # delete useless dirs
-        run("sudo rm -rf /data/web_static/releases/{}/web_static"
-            .format(file_name))
-
-        # Delete the symbolic link from the web server
-        run("sudo rm -rf /data/web_static/current")
-
-        # create new symbolic link on the web server
-        run("sudo ln -s /data/web_static/releases/{}/ \
-            /data/web_static/current".format(file_name))
-    except Exception:
+    if os.path.isfile(archive_path) is False:
         return False
 
-    # return after everything runs successfully
+    # get file from path
+    file = archive_path.split("/")[-1]
+    name = file.split(".")[0]
+
+    # copy file to temp
+    if put(archive_path, "/tm/{}".format(file)).failed is True:
+        return False
+
+    # remove 
+    if run("rm -rf /data/web_static/releases/{}/".format(name)).failed is True:
+        return False
+    
+    if run("mkdir -p /data/web_static/releases/{}/".format(name)).failed is True:
+        return False
+
+    if run("tar -xzf /tmp/{} -C /data/web_static/releases/{}/".
+           format(file, name)).failed is True:
+        return False
+
+    # remove the temp file
+    if run("rm /tmp/{}".format(file)).failed is True:
+        return False
+    # move file and contents
+    if run("mv /data/web_static/releases/{}/web_static/* "
+           "/data/web_static/releases/{}/".format(name, name)).failed is True:
+        return False
+    
+    if run("rm -rf /data/web_static/releases/{}/web_static".
+           format(name)).failed is True:
+        return False
+    if run("rm -rf /data/web_static/current").failed is True:
+        return False
+    if run("ln -s /data/web_static/releases/{}/ /data/web_static/current".
+           format(name)).failed is True:
+        return False
+
+    # return true if all processes check
     return True
 
 
