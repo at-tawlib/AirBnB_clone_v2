@@ -1,14 +1,12 @@
 #!/usr/bin/python3
 from fabric.api import env
 from fabric.api import local
-from fabric.api import run 
+from fabric.api import run
 from fabric.api import put
 from datetime import datetime
 import os.path
 
 env.hosts = ['35.175.105.33', '52.86.214.98']
-env.user = 'ubuntu'
-env.key_filename = '~/.ssh/id_rsa'
 
 
 def do_pack():
@@ -21,17 +19,16 @@ def do_pack():
     # get date to create file
     dt = datetime.utcnow()
     file = "versions/web_static_{}{}{}{}{}{}.tgz".format(dt.year,
-            dt.month,
-            dt.day,
-            dt.hour,
-            dt.minute,
-            dt.second)
+                                                         dt.month,
+                                                         dt.day,
+                                                         dt.hour,
+                                                         dt.minute,
+                                                         dt.second)
 
     # if dir is not available, create dir, return None if unsuccessful
     if os.path.isdir("versions") is False:
         if local("mkdir -p versions").failed is True:
             return None
-    
     # create the archive file
     if local("tar -czvf {} web_static".format(file)).failed is True:
         return None
@@ -61,11 +58,11 @@ def do_deploy(archive_path):
     if put(archive_path, "/tmp/{}".format(file)).failed is True:
         return False
 
-    # remove 
+    # remove
     if run("rm -rf /data/web_static/releases/{}/".format(name)).failed is True:
         return False
-    
-    if run("mkdir -p /data/web_static/releases/{}/".format(name)).failed is True:
+    if run("mkdir -p /data/web_static/releases/{}/".format(name)).\
+            failed is True:
         return False
 
     if run("tar -xzf /tmp/{} -C /data/web_static/releases/{}/".
@@ -79,7 +76,6 @@ def do_deploy(archive_path):
     if run("mv /data/web_static/releases/{}/web_static/* "
            "/data/web_static/releases/{}/".format(name, name)).failed is True:
         return False
-    
     if run("rm -rf /data/web_static/releases/{}/web_static".
            format(name)).failed is True:
         return False
