@@ -58,7 +58,7 @@ def do_deploy(archive_path):
     name = file.split(".")[0]
 
     # copy file to temp
-    if put(archive_path, "/tm/{}".format(file)).failed is True:
+    if put(archive_path, "/tmp/{}".format(file)).failed is True:
         return False
 
     # remove 
