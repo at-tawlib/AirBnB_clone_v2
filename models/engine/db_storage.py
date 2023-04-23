@@ -39,7 +39,11 @@ class DBStorage:
 
     def all(self, cls=None):
         """query all on the current database"""
+        if not self.__session:
+            self.reload()
         dct = {}
+        if type(cls) == str:
+            cls = classes.get(cls, None)
         if cls is None:
             for c in classes.values():
                 objs = self.__session.query(c).all()
