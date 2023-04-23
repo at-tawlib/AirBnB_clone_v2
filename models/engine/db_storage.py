@@ -46,12 +46,12 @@ class DBStorage:
             cls = classes.get(cls, None)
         if cls is None:
             for c in classes.values():
-                objs = self.__session.query(c).all()
+                objs = self.__session.query(c)
                 for obj in objs:
                     key = obj.__class__.__name__ + '.' + obj.id
                     dct[key] = obj
         else:
-            objs = self.__session.query(cls).all()
+            objs = self.__session.query(cls)
             for obj in objs:
                 key = obj.__class__.__name__ + '.' + obj.id
                 dct[key] = obj
@@ -74,9 +74,10 @@ class DBStorage:
 
     def delete(self, obj=None):
         """deletes an object"""
+        if not self.__session:
+            self.reload()
         if obj is not None:
-            self.__session.query(type(obj)).filter(
-                    type(obj).id == obj.id).delete()
+            self.__session.delete(obj)
 
     def reload(self):
         """create all tables of dtabase"""
