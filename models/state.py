@@ -19,6 +19,12 @@ class State(BaseModel, Base):
     else:
         name = ''
 
+    def __init__(self, *args, **kwargs):
+        """initialize state"""
+        super().__init__(*args, **kwargs)
+
+    
+    if getenv("HBNB_TYPE_STORAGE") != "db":
         @property
         def cities(self):
             """
