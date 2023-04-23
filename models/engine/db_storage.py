@@ -31,8 +31,8 @@ class DBStorage:
         host = getenv("HBNB_MYSQL_HOST")
         db = getenv("HBNB_MYSQL_DB")
 
-        self.__engine = create_engine(
-                f"mysql+mysqldb://{user}:{password}@{host}/{db}")
+        self.__engine = create_engine("mysql+mysqldb://{}:{}@{}/{}"
+                                      .format(user, password, host, db))
 
     if getenv("HBNB_ENV") == "test":
         Base.metadata.drop_all(self.__engine)
@@ -81,12 +81,12 @@ class DBStorage:
 
     def reload(self):
         """create all tables of dtabase"""
-        Base.metadata.create_all(self.__engine)
         session_factory = sessionmaker(bind=self.__engine,
                                        expire_on_commit=False)
+        Base.metadata.create_all(self.__engine)
         Session = scoped_session(session_factory)
         self.__session = Session()
 
     def close(self):
         """closes the working SQLAlchemy session"""
-        self.__session.remove()
+        self.__session.close()
