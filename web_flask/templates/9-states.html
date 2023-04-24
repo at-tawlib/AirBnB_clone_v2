@@ -17,7 +17,7 @@
 			<UL>
 				{% for city in states.cities | sort(attribute='name') %}
 				<LI>{{ city.id }}: <B>{{ city.name }}</B></LI>
-		{% endfor %}
+				{% endfor %}
 			</UL>
 		{% else %}
 			<H1>Not Found!</H1>
