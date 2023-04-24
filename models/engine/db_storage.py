@@ -46,12 +46,12 @@ class DBStorage:
             cls = classes.get(cls, None)
         if cls is None:
             for c in classes.values():
-                objs = self.__session.query(c)
+                objs = self.__session.query(c).all()
                 for obj in objs:
                     key = obj.__class__.__name__ + '.' + obj.id
                     dct[key] = obj
         else:
-            objs = self.__session.query(cls)
+            objs = self.__session.query(cls).all()
             for obj in objs:
                 key = obj.__class__.__name__ + '.' + obj.id
                 dct[key] = obj
@@ -60,13 +60,7 @@ class DBStorage:
     def new(self, obj):
         """Adds a new object"""
         if obj is not None:
-            try:
-                self.__session.add(obj)
-                self.__session.flush()
-                self.__session.refresh(obj)
-            except Exception as ex:
-                self.__session.rollback()
-                raise ex
+            self.__session.add(obj)
 
     def save(self):
         """saves  current db session"""
