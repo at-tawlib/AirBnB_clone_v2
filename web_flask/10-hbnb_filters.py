@@ -2,7 +2,6 @@
 """Starts Flask web app listening on 0.0.0.0, port 5000"""
 from flask import Flask, render_template
 from models import storage
-from models.state import State
 
 
 app = Flask(__name__)
@@ -12,8 +11,9 @@ app.url_map.strict_slashes = False
 @app.route('/hbnb_filters')
 def hbnb_filters():
     """display a beautiful HTML with loaded data"""
-    states = storage.all(State)
-    return render_template('6-index.html', states=states)
+    states = storage.all("State")
+    amenities = storage.all("Amenity")
+    return render_template('6-index.html', amenities=amenities, states=states)
 
 
 @app.teardown_appcontext
